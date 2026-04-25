@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DASHBOARD | SEARCH</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>SEARCH SYSTEM</h2>
+        <p style="font-size: 0.7em;">Добро пожаловать, {{ session['user'] }}</p>
+        
+        <form method="POST">
+            <input type="text" name="search_phone" placeholder="Введите номер для поиска" required>
+            <button type="submit">НАЙТИ В БАЗЕ</button>
+        </form>
+        
+        {% if result %}
+            <div class="result">
+                {% if "НАЙДЕНО" in result %}
+                    <span style="color: #ff0000; text-shadow: 0 0 10px red;">{{ result }}</span>
+                {% else %}
+                    <span style="color: #00ff00; text-shadow: 0 0 10px green;">{{ result }}</span>
+                {% endif %}
+            </div>
+        {% endif %}
+        
+        <a href="/login" style="color: #555;">ВЫЙТИ ИЗ СИСТЕМЫ</a>
+    </div>
+</body>
+</html>

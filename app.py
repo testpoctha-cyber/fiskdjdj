@@ -1,0 +1,75 @@
+import os
+from flask import Flask, render_template, request, redirect, session, url_for
+import csv
+
+# Настройка путей
+base_dir = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, 
+            template_folder=os.path.join(base_dir, 'templates'),
+            static_folder=os.path.join(base_dir, 'static'))
+
+app.secret_key = 'red_black_secret'
+DB_FILE = os.path.join(base_dir, 'users.csv')
+
+# Инициализация базы
+if not os.path.exists(DB_FILE):
+    with open(DB_FILE, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(['phone', 'login', 'password', 'ip'])
+
+@app.route('/')
+def home():
+    return redirect(url_for('login'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        phone = request.form.get('phone')
+        login = request.form.get('login')
+        password = request.form.get('password')
+        user_ip = request.remote_addr
+        
+        with open(DB_FILE, 'a', newline='', encoding='utf-8') as f:
+            writer = csv.writer(f)
+            writer.writerow([phone, login, password, user_ip])
+        return redirect(url_for('login'))
+    return render_template('register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        login_input = request.form.get('login')
+        pass_input = request.form.get('password')
+        
+        if os.path.exists(DB_FILE):
+            with open(DB_FILE, 'r', encoding='utf-8') as f:
+                reader = csv.DictReader(f)
+                for row in reader:
+                    if row['login'] == login_input and row['password'] == pass_input:
+                        session['user'] = login_input
+                        return redirect(url_for('dashboard'))
+        return "Ошибка! Неверный логин или пароль."
+    return render_template('login.html')
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    if 'user' not in session:
+        return redirect(url_for('login'))
+    
+    result = None
+    if request.method == 'POST':
+        search_phone = request.form.get('search_phone')
+        with open(DB_FILE, 'r', encoding='utf-8') as f:
+            reader = csv.DictReader(f)
+            # Ищем номер в базе
+            found = any(row['phone'] == search_phone for row in reader)
+            result = "НАЙДЕНО В УТЕЧКЕ" if found else "НЕ НАЙДЕНО"
+            
+    return render_template('dashboard.html', result=result)
+
+# КРИТИЧЕСКИ ВАЖНЫЙ БЛОК ДЛЯ ЗАПУСКА
+if __name__ == '__main__':
+    print("Старт сервера...")
+    # use_reloader=False нужен для стабильной работы в Pydroid 3
+    app.run(host='0.0.0.0', port=5000, debug=True, use_reloader=False)
+

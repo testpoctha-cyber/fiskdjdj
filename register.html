@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REGISTRATION | DATABASE</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h2>РЕГИСТРАЦИЯ</h2>
+        <form method="POST">
+            <input type="text" name="phone" placeholder="Номер телефона" required>
+            <input type="text" name="login" placeholder="Логин" required>
+            <input type="password" name="password" placeholder="Пароль" required>
+            <button type="submit">СОЗДАТЬ АККАУНТ</button>
+        </form>
+        <a href="/login">Уже есть аккаунт? Войти</a>
+    </div>
+</body>
+</html>
